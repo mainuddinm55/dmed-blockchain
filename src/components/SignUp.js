@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
-import { registration } from "../actions/UserAction";
+import { registration } from "../actions/PatientDataManager";
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 

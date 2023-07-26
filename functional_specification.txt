@@ -1,0 +1,93 @@
+#######################
+Store Data of Patient
+-----------------------
+Input: File, Raw Text
+#######################
+
+1. Convert file to base64.
+2. Pick user information from Session.
+3. Make json with file and raw. {type:"jpeg",base64:"sgasdf",data:"raw data"}
+4. Encrypt information with secret key.
+5. Store into IPFS and get CID
+6. Make json with CID information. {address:"address",data:"cid address"}
+7. Store into blockchain with address.
+
+Required Information:
+---------------------
+1. address, secret key, public key of data owner.
+2. data owner public information are name, email, phone, dob, gender, blood group, public key, address.
+3. data owner private information are private key, secret key, password.   
+
+Note: Public information are found on users. 
+Note: Private information are found only if data owner or shared.
+
+User Information Format
+------------------------
+
+{
+   "public_info":{
+      "name":"Md Mainuddin",
+      "email":"mainuddinm55@gmail.com",
+      "phone":"01822800727",
+      "dob":"2023-07-18",
+      "blood_group":"B+",
+      "gender":"Male",
+      "public_key":"",
+      "address":""
+   },
+   "private_info":{
+      "private_key":"",
+      "secret_key":"",
+   },
+   "password":"",
+   "email":""
+}
+
+email => will be SHA256 of original email.
+password => will be SHA256 of original password
+key => will be password + email SHA256.
+public_info => All public information of user with encryption by SHA256 of password.
+private_info => All private information with encryption by key. 
+
+
+For Accessing User Information
+-------------------------------
+
+Login: all information of user
+Access: all information of user expect email & private_info
+
+
+######################
+Registration Process
+######################
+
+1. Take basic information from input.
+2. Generate RSA key pairs (public, private)
+3. Address from MetaMask
+4. Generate secret key SHA256 of (combination of public key, address, email, password)
+5. Prepare JSON and encrypt them (private_key with key (key will be SHA256 of email, password)
+6. Prepare JSON and encrypt them (public_key with key (key will be SHA256 of password)
+7. Store Data into Blockchain
+
+
+##################################
+Data Share Process
+----------------------------------
+Input: Onwer & Shared Person Info
+##################################
+1. Secret key of data owner.
+2. Generate expire time.
+3. Encrypt secret key with Shared Person public key
+4. Generate JSON & store into blockchain
+
+Share Info Format
+------------------
+{
+   "to":"",
+   "timestamp":"",
+   "rule":"",
+   "cred":""
+}
+
+
+
