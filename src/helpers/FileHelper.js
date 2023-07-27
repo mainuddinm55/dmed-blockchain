@@ -1,5 +1,5 @@
 /**
- *
+ * Convert file to base64
  * @param {File} file input file
  * @returns {Promise<string>} base64
  */

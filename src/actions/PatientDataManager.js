@@ -14,6 +14,11 @@ import { unixfs } from "@helia/unixfs";
 import { MemoryBlockstore } from "blockstore-core";
 import { CID } from "multiformats/cid";
 
+/**
+ * GET Solidity Contract
+ * @param {ethers.providers.Web3Provider} provider metamask provider
+ * @returns {ethers.Contract} contact of 0xF9A2015A19F911f513DC3490D4aAbdcb18ae14ff address
+ */
 const getContract = (provider) => {
   return new ethers.Contract(
     "0xF9A2015A19F911f513DC3490D4aAbdcb18ae14ff",
@@ -22,6 +27,13 @@ const getContract = (provider) => {
   );
 };
 
+/**
+ * Registration of Patient/Doctors/Hospital
+ * @param {ethers.providers.Web3Provider} provider metamask provider
+ * @param {string} address registered user address
+ * @param {*} data contain some information of user
+ * @returns return blockchain transaction receipt
+ */
 export async function registration(provider, address, data) {
   if (!provider) throw Error("Provide can't be null");
   if (!address) throw Error("Address can't be null");
@@ -67,6 +79,14 @@ export async function registration(provider, address, data) {
   return receipt;
 }
 
+/**
+ * User login into system using credentials
+ * @param {ethers.providers.Web3Provider} provider metamask provider
+ * @param {string} address user address for login
+ * @param {string} email user email which attach with same address
+ * @param {string} password password was set during registration
+ * @returns user private & public informations
+ */
 export async function login(provider, address, email, password) {
   const hashPassword = createHash(password);
   const hashEmail = createHash(email);
@@ -82,6 +102,11 @@ export async function login(provider, address, email, password) {
   };
 }
 
+/**
+ * Get all users in our system
+ * @param {ethers.providers.Web3Provider} provider metamask provider
+ * @returns {Promise<Array>} all users with containing public information
+ */
 export async function getUsers(provider) {
   const contract = getContract(provider);
   const users = await contract.getUsers();
@@ -89,15 +114,15 @@ export async function getUsers(provider) {
     JSON.parse(decrypt(user.public_info, user.password))
   );
 }
+
 /**
- *
+ * Share data owner his data to other user
  * @param {*} provider metamask provider
  * @param {{address:string,secret:string}} from data owner info
  * @param {{address: string,"public_key":string}} to shared user info
  * @param {{expire_time:number,rule:string}} options contain options
  * @returns receipt of blockchain transactions
  */
-
 export async function share(provider, from, to, options = {}) {
   const expireTime = options.expire_time || 0;
   let rule = options.rule || "READ"; //WRITE, BOTH
@@ -114,8 +139,9 @@ export async function share(provider, from, to, options = {}) {
   receipt.wait(1);
   return receipt;
 }
+
 /**
- *
+ * Check of the user having access to read or write
  * @param {ethers.providers.Web3Provider} provider metamask provder
  * @param {string} fromAddress address of data owner
  * @param {{private_key:string,address:string}} user shared user info
@@ -128,6 +154,13 @@ export async function isAuthorized(provider, fromAddress, user) {
   return rsaDecrypt(authentication.cred, private_key);
 }
 
+/**
+ * Data owner removed his shared access of given user.
+ * @param {ethers.providers.Web3Provider} provider metamask provider
+ * @param {string} fromAddress data owner address
+ * @param {string} toAddress shared user address
+ * @returns blockchain transaction receipt
+ */
 export async function removeAccess(provider, fromAddress, toAddress) {
   const contract = getContract(provider);
   const removeAccessReceipt = await contract.removeShare(
@@ -138,6 +171,10 @@ export async function removeAccess(provider, fromAddress, toAddress) {
   return receipt;
 }
 
+/**
+ * IPFS file uploader and downloader
+ * @returns {import("@helia/unixfs").UnixFS} return of unix file system of IPFS
+ */
 const getFs = async () => {
   const blockstore = new MemoryBlockstore();
   const helia = await createHelia({ blockstore });
@@ -146,7 +183,7 @@ const getFs = async () => {
 };
 
 /**
- *
+ * Store patient data into IPFS and blockchain
  * @param {ethers.providers.Web3Provider} provider metamask provider
  * @param {string} address data owner address
  * @param {string} user data stored user address
@@ -171,6 +208,14 @@ export async function storeData(provider, address, user, secret, data) {
   return receipt;
 }
 
+/**
+ * GET Patient Data
+ * @param {ethers.providers.Web3Provider} provder metamask provider
+ * @param {string} address address of data owner
+ * @param {string} user address of data accesser / can data owner
+ * @param {string} secret data owner secret to decrypt data
+ * @returns all data's of that user
+ */
 export async function getData(provder, address, user, secret) {
   const contract = getContract(provder);
   const content = await contract.getData(address, user);
