@@ -60,9 +60,12 @@ contract PatientDataManager {
                 keccak256(abi.encodePacked(_email)),
             "User already exists"
         );
-        require(!users[_addr].exists,"Another user already exits with this address");
-        
-        User memory user = User(_email, _password, _u_type, _public_info,true);
+        require(
+            !users[_addr].exists,
+            "Another user already exits with this address"
+        );
+
+        User memory user = User(_email, _password, _u_type, _public_info, true);
         users[_addr] = user;
         user_private_infos[_addr] = _private_info;
         all_users.push(user);
@@ -115,17 +118,82 @@ contract PatientDataManager {
         view
         returns (Authentication memory)
     {
-        if (hasShareEntity(_from, _to) && authentications[_from][_to].timestamp <= block.timestamp) {
+        if (
+            hasShareEntity(_from, _to) &&
+            authentications[_from][_to].timestamp >= block.timestamp
+        ) {
             return authentications[_from][_to];
         }
         revert("Unauthorized");
     }
 
-    function store(address _addr, string memory _data) public {
-        datas[_addr].push(_data);
+    function getShare(address _from, address _to)
+        public
+        view
+        returns (Authentication memory, uint256)
+    {
+        return (authentications[_from][_to], block.timestamp);
     }
 
-    function getData(address _addr) public view returns (string[] memory) {
-        return datas[_addr];
+    function hasReadAccess(address _from, address _to)
+        private 
+        view
+        returns (bool)
+    {
+        if (_from == _to) return true;
+        if (
+            hasShareEntity(_from, _to) &&
+            authentications[_from][_to].timestamp >= block.timestamp &&
+            (keccak256(abi.encodePacked(authentications[_from][_to].rule)) ==
+                keccak256(abi.encodePacked("BOTH")) ||
+                keccak256(abi.encodePacked(authentications[_from][_to].rule)) ==
+                keccak256(abi.encodePacked("READ")))
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    function hasWriteAccess(address _from, address _to)
+        private 
+        view
+        returns (bool)
+    {
+        if (_from == _to) return true;
+        if (
+            hasShareEntity(_from, _to) &&
+            authentications[_from][_to].timestamp >= block.timestamp &&
+            (keccak256(abi.encodePacked(authentications[_from][_to].rule)) ==
+                keccak256(abi.encodePacked("BOTH")) ||
+                keccak256(abi.encodePacked(authentications[_from][_to].rule)) ==
+                keccak256(abi.encodePacked("WRITE")))
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    function store(
+        address _from,
+        address _to,
+        string memory _data
+    ) public {
+        if (hasWriteAccess(_from, _to)) {
+            datas[_from].push(_data);
+        } else {
+            revert("Unauthorized");
+        }
+    }
+
+    function getData(address _from, address _to)
+        public
+        view
+        returns (string[] memory)
+    {
+        if (hasReadAccess(_from, _to)) {
+            return datas[_from];
+        } else {
+            revert("Unauthorized");
+        }
     }
 }
