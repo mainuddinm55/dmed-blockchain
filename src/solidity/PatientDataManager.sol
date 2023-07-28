@@ -71,11 +71,10 @@ contract PatientDataManager {
         all_users.push(user);
     }
 
-    function hasShareEntity(address _from, address _to)
-        private
-        view
-        returns (bool)
-    {
+    function hasShareEntity(
+        address _from,
+        address _to
+    ) private view returns (bool) {
         return authentications[_from][_to].has_access;
     }
 
@@ -113,11 +112,10 @@ contract PatientDataManager {
         authentications[_from][_to].has_access = false;
     }
 
-    function isAuthorized(address _from, address _to)
-        public
-        view
-        returns (Authentication memory)
-    {
+    function isAuthorized(
+        address _from,
+        address _to
+    ) public view returns (Authentication memory) {
         if (
             hasShareEntity(_from, _to) &&
             authentications[_from][_to].timestamp >= block.timestamp
@@ -127,19 +125,17 @@ contract PatientDataManager {
         revert("Unauthorized");
     }
 
-    function getShare(address _from, address _to)
-        public
-        view
-        returns (Authentication memory, uint256)
-    {
+    function getShare(
+        address _from,
+        address _to
+    ) public view returns (Authentication memory, uint256) {
         return (authentications[_from][_to], block.timestamp);
     }
 
-    function hasReadAccess(address _from, address _to)
-        private 
-        view
-        returns (bool)
-    {
+    function hasReadAccess(
+        address _from,
+        address _to
+    ) private view returns (bool) {
         if (_from == _to) return true;
         if (
             hasShareEntity(_from, _to) &&
@@ -154,11 +150,10 @@ contract PatientDataManager {
         return false;
     }
 
-    function hasWriteAccess(address _from, address _to)
-        private 
-        view
-        returns (bool)
-    {
+    function hasWriteAccess(
+        address _from,
+        address _to
+    ) private view returns (bool) {
         if (_from == _to) return true;
         if (
             hasShareEntity(_from, _to) &&
@@ -173,11 +168,7 @@ contract PatientDataManager {
         return false;
     }
 
-    function store(
-        address _from,
-        address _to,
-        string memory _data
-    ) public {
+    function store(address _from, address _to, string memory _data) public {
         if (hasWriteAccess(_from, _to)) {
             datas[_from].push(_data);
         } else {
@@ -185,11 +176,10 @@ contract PatientDataManager {
         }
     }
 
-    function getData(address _from, address _to)
-        public
-        view
-        returns (string[] memory)
-    {
+    function getData(
+        address _from,
+        address _to
+    ) public view returns (string[] memory) {
         if (hasReadAccess(_from, _to)) {
             return datas[_from];
         } else {
